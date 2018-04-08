@@ -1,0 +1,30 @@
+INCLUDE(FindPkgConfig)
+PKG_CHECK_MODULES(PC_INTERLEAVER interleaver)
+
+FIND_PATH(
+    INTERLEAVER_INCLUDE_DIRS
+    NAMES interleaver/api.h
+    HINTS $ENV{INTERLEAVER_DIR}/include
+        ${PC_INTERLEAVER_INCLUDEDIR}
+    PATHS ${CMAKE_INSTALL_PREFIX}/include
+          /usr/local/include
+          /usr/include
+)
+
+FIND_LIBRARY(
+    INTERLEAVER_LIBRARIES
+    NAMES gnuradio-interleaver
+    HINTS $ENV{INTERLEAVER_DIR}/lib
+        ${PC_INTERLEAVER_LIBDIR}
+    PATHS ${CMAKE_INSTALL_PREFIX}/lib
+          ${CMAKE_INSTALL_PREFIX}/lib64
+          /usr/local/lib
+          /usr/local/lib64
+          /usr/lib
+          /usr/lib64
+)
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(INTERLEAVER DEFAULT_MSG INTERLEAVER_LIBRARIES INTERLEAVER_INCLUDE_DIRS)
+MARK_AS_ADVANCED(INTERLEAVER_LIBRARIES INTERLEAVER_INCLUDE_DIRS)
+
