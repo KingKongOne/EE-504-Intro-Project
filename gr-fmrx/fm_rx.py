@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Fm Rx
-# Generated: Sun Apr  8 12:25:44 2018
+# Generated: Tue Apr 17 16:08:01 2018
 ##################################################
 
 if __name__ == '__main__':
@@ -37,7 +37,7 @@ import wx
 
 class fm_rx(grc_wxgui.top_block_gui):
 
-    def __init__(self):
+    def __init__(self,frequency):
         grc_wxgui.top_block_gui.__init__(self, title="Fm Rx")
         _icon_path = "C:\Program Files\GNURadio-3.7\share\icons\hicolor\scalable/apps\gnuradio-grc.png"
         self.SetIcon(wx.Icon(_icon_path, wx.BITMAP_TYPE_ANY))
@@ -194,4 +194,7 @@ def main(top_block_cls=fm_rx, options=None):
 
 
 if __name__ == '__main__':
-    main()
+  parser = argparse.ArgumentParser(description='Enter a frequency')
+  parser.add_argument('-f', '--frequency', type=float, required=True)
+  args = parser.parse_args()
+  fm_radio(args.frequency).run()
