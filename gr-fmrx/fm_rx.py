@@ -30,85 +30,28 @@ from gnuradio.wxgui import fftsink2
 from gnuradio.wxgui import forms
 from grc_gnuradio import wxgui as grc_wxgui
 from optparse import OptionParser
+import argparse
 import osmosdr
 import time
 import wx
 
 
-class fm_rx(grc_wxgui.top_block_gui):
+class fm_rx(gr.top_block):
 
     def __init__(self,frequency):
-        grc_wxgui.top_block_gui.__init__(self, title="Fm Rx")
-        _icon_path = "C:\Program Files\GNURadio-3.7\share\icons\hicolor\scalable/apps\gnuradio-grc.png"
-        self.SetIcon(wx.Icon(_icon_path, wx.BITMAP_TYPE_ANY))
-
+        gr.top_block.__init__(self)
         ##################################################
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 250e3
         self.gain = gain = 40
-        self.freq = freq = 98e6
+        self.freq = freq = frequency
         self.audio_rate = audio_rate = 48000
         self.audio_interp = audio_interp = 4
 
         ##################################################
         # Blocks
         ##################################################
-        self._samp_rate_text_box = forms.text_box(
-        	parent=self.GetWin(),
-        	value=self.samp_rate,
-        	callback=self.set_samp_rate,
-        	label='Sample Rate',
-        	converter=forms.float_converter(),
-        )
-        self.Add(self._samp_rate_text_box)
-        _gain_sizer = wx.BoxSizer(wx.VERTICAL)
-        self._gain_text_box = forms.text_box(
-        	parent=self.GetWin(),
-        	sizer=_gain_sizer,
-        	value=self.gain,
-        	callback=self.set_gain,
-        	label='Gain',
-        	converter=forms.float_converter(),
-        	proportion=0,
-        )
-        self._gain_slider = forms.slider(
-        	parent=self.GetWin(),
-        	sizer=_gain_sizer,
-        	value=self.gain,
-        	callback=self.set_gain,
-        	minimum=0,
-        	maximum=90,
-        	num_steps=100,
-        	style=wx.SL_HORIZONTAL,
-        	cast=float,
-        	proportion=1,
-        )
-        self.Add(_gain_sizer)
-        self._freq_text_box = forms.text_box(
-        	parent=self.GetWin(),
-        	value=self.freq,
-        	callback=self.set_freq,
-        	label='Frequency',
-        	converter=forms.float_converter(),
-        )
-        self.Add(self._freq_text_box)
-        self.wxgui_fftsink2_0 = fftsink2.fft_sink_c(
-        	self.GetWin(),
-        	baseband_freq=freq,
-        	y_per_div=10,
-        	y_divs=10,
-        	ref_level=0,
-        	ref_scale=2.0,
-        	sample_rate=samp_rate,
-        	fft_size=1024,
-        	fft_rate=15,
-        	average=False,
-        	avg_alpha=None,
-        	title='FFT Plot',
-        	peak_hold=False,
-        )
-        self.Add(self.wxgui_fftsink2_0.win)
         self.rtlsdr_source_0 = osmosdr.source( args="numchan=" + str(1) + " " + '' )
         self.rtlsdr_source_0.set_sample_rate(samp_rate)
         self.rtlsdr_source_0.set_center_freq(93.3e6, 0)
@@ -144,57 +87,14 @@ class fm_rx(grc_wxgui.top_block_gui):
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.analog_wfm_rcv_0, 0))
         self.connect((self.low_pass_filter_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.rational_resampler_xxx_0, 0), (self.low_pass_filter_0, 0))
-        self.connect((self.rational_resampler_xxx_0, 0), (self.wxgui_fftsink2_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.rational_resampler_xxx_0, 0))
 
-    def get_samp_rate(self):
-        return self.samp_rate
-
-    def set_samp_rate(self, samp_rate):
-        self.samp_rate = samp_rate
-        self._samp_rate_text_box.set_value(self.samp_rate)
-        self.wxgui_fftsink2_0.set_sample_rate(self.samp_rate)
-        self.rtlsdr_source_0.set_sample_rate(self.samp_rate)
-
-    def get_gain(self):
-        return self.gain
-
-    def set_gain(self, gain):
-        self.gain = gain
-        self._gain_slider.set_value(self.gain)
-        self._gain_text_box.set_value(self.gain)
-        self.rtlsdr_source_0.set_gain(self.gain, 0)
-
-    def get_freq(self):
-        return self.freq
-
-    def set_freq(self, freq):
-        self.freq = freq
-        self._freq_text_box.set_value(self.freq)
-        self.wxgui_fftsink2_0.set_baseband_freq(self.freq)
-
-    def get_audio_rate(self):
-        return self.audio_rate
-
-    def set_audio_rate(self, audio_rate):
-        self.audio_rate = audio_rate
-
-    def get_audio_interp(self):
-        return self.audio_interp
-
-    def set_audio_interp(self, audio_interp):
-        self.audio_interp = audio_interp
-
-
 def main(top_block_cls=fm_rx, options=None):
-
-    tb = top_block_cls()
-    tb.Start(True)
-    tb.Wait()
+    parser = argparse.ArgumentParser(description='Enter a frequency')
+    parser.add_argument('-f', '--frequency', type=float, required=True)
+    args = parser.parse_args()
+    top_block_cls(args.frequency*1000000).run()
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(description='Enter a frequency')
-  parser.add_argument('-f', '--frequency', type=float, required=True)
-  args = parser.parse_args()
-  fm_radio(args.frequency).run()
+    main()
